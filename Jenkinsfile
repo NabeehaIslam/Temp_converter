@@ -58,13 +58,33 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Creating zip archive for version ${APP_VERSION}"
-                bat 'powershell Compress-Archive -Path build\\* -DestinationPath build_%APP_VERSION%.zip'
+                bat '''
+                    powershell -Command "
+                        try {
+                            Write-Host 'Importing PowerShell Archive module...';
+                            Import-Module Microsoft.PowerShell.Archive -Force;
+
+                            Write-Host 'Compressing build folder...';
+                            Compress-Archive -Path build\\* -DestinationPath build_${env:APP_VERSION}.zip -Force;
+
+                            Write-Host 'Archive created successfully: build_${env:APP_VERSION}.zip';
+                        }
+                        catch {
+                            Write-Host 'Compression failed:' $_;
+                            exit 1;
+                        }
+                    "
+                '''
             }
         }
 
         stage('Deploy (Simulation)') {
             steps {
                 echo "Simulating deployment of version ${APP_VERSION} to ${params.ENVIRONMENT}"
+                bat '''
+                    echo Deploying build_${APP_VERSION}.zip to ${params.ENVIRONMENT} environment...
+                    echo Deployment simulated successfully.
+                '''
             }
         }
     }

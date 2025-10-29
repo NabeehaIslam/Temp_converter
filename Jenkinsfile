@@ -58,19 +58,15 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Creating zip archive for version ${APP_VERSION}"
-                // ✅ Correctly invoke PowerShell
                 bat '''
-                    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-                    "try {
-                        Write-Host 'Importing PowerShell Archive module...';
-                        Import-Module Microsoft.PowerShell.Archive -Force;
-                        Write-Host 'Compressing build folder...';
-                        Compress-Archive -Path 'build\\*' -DestinationPath 'build_${env:APP_VERSION}.zip' -Force;
-                        Write-Host 'Archive created successfully: build_${env:APP_VERSION}.zip';
-                    } catch {
-                        Write-Host 'Compression failed:' $_;
-                        exit 1;
-                    }"
+                    echo Write-Host 'Importing PowerShell Archive module...' > package.ps1
+                    echo Import-Module Microsoft.PowerShell.Archive -Force >> package.ps1
+                    echo Write-Host 'Compressing build folder...' >> package.ps1
+                    echo Compress-Archive -Path 'build\\*' -DestinationPath 'build_%APP_VERSION%.zip' -Force >> package.ps1
+                    echo Write-Host 'Archive created successfully: build_%APP_VERSION%.zip' >> package.ps1
+
+                    powershell -NoProfile -ExecutionPolicy Bypass -File package.ps1
+                    del package.ps1
                 '''
             }
         }
@@ -79,7 +75,7 @@ pipeline {
             steps {
                 echo "Simulating deployment of version ${APP_VERSION} to ${params.ENVIRONMENT}"
                 bat '''
-                    echo Deploying build_${APP_VERSION}.zip to ${params.ENVIRONMENT} environment...
+                    echo Deploying build_%APP_VERSION%.zip to ${params.ENVIRONMENT} environment...
                     echo Deployment simulated successfully.
                 '''
             }

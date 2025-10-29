@@ -38,7 +38,7 @@ pipeline {
                 bat '''
                     echo Simulating build process...
                     if not exist build mkdir build
-                    copy *.js build
+                    copy src\\*.js build \\
                     echo Build completed successfully!
                     echo App version: %APP_VERSION% > build\\version.txt
                 '''

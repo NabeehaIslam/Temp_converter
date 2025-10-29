@@ -58,22 +58,19 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Creating zip archive for version ${APP_VERSION}"
+                // ✅ Correctly invoke PowerShell
                 bat '''
-                    powershell -Command "
-                        try {
-                            Write-Host 'Importing PowerShell Archive module...';
-                            Import-Module Microsoft.PowerShell.Archive -Force;
-
-                            Write-Host 'Compressing build folder...';
-                            Compress-Archive -Path build\\* -DestinationPath build_${env:APP_VERSION}.zip -Force;
-
-                            Write-Host 'Archive created successfully: build_${env:APP_VERSION}.zip';
-                        }
-                        catch {
-                            Write-Host 'Compression failed:' $_;
-                            exit 1;
-                        }
-                    "
+                    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+                    "try {
+                        Write-Host 'Importing PowerShell Archive module...';
+                        Import-Module Microsoft.PowerShell.Archive -Force;
+                        Write-Host 'Compressing build folder...';
+                        Compress-Archive -Path 'build\\*' -DestinationPath 'build_${env:APP_VERSION}.zip' -Force;
+                        Write-Host 'Archive created successfully: build_${env:APP_VERSION}.zip';
+                    } catch {
+                        Write-Host 'Compression failed:' $_;
+                        exit 1;
+                    }"
                 '''
             }
         }
